@@ -1,34 +1,17 @@
-name: Build and Tunnel
-
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+name: Windows-RDP-LocalX
+on: workflow_dispatch
 
 jobs:
-  build-job:
+  build:
     runs-on: windows-latest
     steps:
-      - name: Download ngrok
-        run: Invoke-WebRequest https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-windows-amd64.zip -OutFile ngrok.zip
-      
-      - name: Extract ngrok
-        run: Expand-Archive ngrok.zip
-      
-      - name: Authenticate ngrok
-        env:
-          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
-        run: .\ngrok\ngrok.exe authtoken $Env:NGROK_AUTH_TOKEN
-      
-      - name: Enable Remote Desktop
+      - name: Download LocalXpose
         run: |
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
-          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
-      
-      - name: Set runneradmin user password
-        run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "P@ssw0rd!" -Force)
-
-      - name: Create ngrok TCP tunnel for RDP
-        run: .\ngrok\ngrok.exe tcp 3389
+          Invoke-WebRequest https://localxpose.io/ext/loclx-windows-amd64.zip -OutFile loclx.zip
+          Expand-Archive loclx.zip
+      - name: Authenticate & Start RDP
+        run: |
+          ./loclx/loclx.exe account login ${{ secrets.LOCALXPOSE_AUTH_TOKEN }}
+          Start-Process ./loclx/loclx.exe -ArgumentList "tunnel tcp --port 3389"
+          echo "RDP is ready!"
+        shell: pwsh
