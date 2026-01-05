@@ -1,23 +1,14 @@
-name: Windows-RDP-LocalX
+name: Windows-RDP-Tmate
 on: workflow_dispatch
 
 jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Download and Extract LocalXpose
-        run: |
-          Invoke-WebRequest https://localxpose.io/ext/loclx-windows-amd64.zip -OutFile loclx.zip
-          Expand-Archive loclx.zip -DestinationPath .
-        shell: pwsh
-
-      - name: Auth and Start Tunnel
-        run: |
-          # محاولة تسجيل الدخول باستخدام التوكن
-          ./loclx.exe account login ${{ secrets.LOCALXPOSE_AUTH_TOKEN }}
-          # تشغيل النفق في الخلفية
-          Start-Process -FilePath "./loclx.exe" -ArgumentList "tunnel tcp --port 3389"
-          echo "RDP Server is starting..."
-          # انتظار قليلاً للتأكد من استقرار الاتصال
-          Start-Sleep -s 30
-        shell: pwsh
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Launch RDP with Tmate
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: false
