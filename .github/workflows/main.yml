@@ -1,14 +1,18 @@
-name: Windows-RDP-Tmate
+name: Windows-RDP-Serveo
 on: workflow_dispatch
-
 jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        
-      - name: Launch RDP with Tmate
-        uses: mxschmitt/action-tmate@v3
-        with:
-          limit-access-to-actor: false
+      - name: Configure Windows User
+        run: |
+          net user runneradmin Password123! /add
+          net localgroup administrators runneradmin /add
+        shell: pwsh
+
+      - name: Start Tunnel with Serveo
+        run: |
+          echo "Starting RDP Tunnel..."
+          # هذا الأمر يربط منفذ الـ RDP بخادم Serveo
+          ssh -o StrictHostKeyChecking=no -R 80:localhost:3389 serveo.net
+        shell: pwsh
