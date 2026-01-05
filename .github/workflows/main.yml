@@ -5,13 +5,19 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Download LocalXpose
+      - name: Download and Extract LocalXpose
         run: |
           Invoke-WebRequest https://localxpose.io/ext/loclx-windows-amd64.zip -OutFile loclx.zip
-          Expand-Archive loclx.zip
-      - name: Authenticate & Start RDP
+          Expand-Archive loclx.zip -DestinationPath .
+        shell: pwsh
+
+      - name: Auth and Start Tunnel
         run: |
-          ./loclx/loclx.exe account login ${{ secrets.LOCALXPOSE_AUTH_TOKEN }}
-          Start-Process ./loclx/loclx.exe -ArgumentList "tunnel tcp --port 3389"
-          echo "RDP is ready!"
+          # محاولة تسجيل الدخول باستخدام التوكن
+          ./loclx.exe account login ${{ secrets.LOCALXPOSE_AUTH_TOKEN }}
+          # تشغيل النفق في الخلفية
+          Start-Process -FilePath "./loclx.exe" -ArgumentList "tunnel tcp --port 3389"
+          echo "RDP Server is starting..."
+          # انتظار قليلاً للتأكد من استقرار الاتصال
+          Start-Sleep -s 30
         shell: pwsh
